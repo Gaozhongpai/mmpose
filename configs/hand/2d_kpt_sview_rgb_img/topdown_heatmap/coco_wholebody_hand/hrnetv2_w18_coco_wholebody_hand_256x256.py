@@ -105,7 +105,9 @@ train_pipeline = [
     dict(
         type='TopDownGetRandomScaleRotation', rot_factor=90, scale_factor=0.3),
     dict(type='TopDownAffine'),
+    dict(type='TopDownRandomLowRes', low_res_prob=0.5),
     dict(type='ToTensor'),
+    dict(type='TopDownRandomLowLight', low_light_prob=0.5),
     dict(
         type='NormalizeTensor',
         mean=[0.485, 0.456, 0.406],
@@ -124,7 +126,9 @@ val_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='TopDownGetBboxCenterScale', padding=1.25),
     dict(type='TopDownAffine'),
+    dict(type='TopDownRandomLowRes', low_res_prob=0.5),
     dict(type='ToTensor'),
+    dict(type='TopDownRandomLowLight', low_light_prob=0.5),
     dict(
         type='NormalizeTensor',
         mean=[0.485, 0.456, 0.406],
@@ -139,10 +143,10 @@ test_pipeline = val_pipeline
 
 data_root = 'data/coco'
 data = dict(
-    samples_per_gpu=32,
-    workers_per_gpu=2,
-    val_dataloader=dict(samples_per_gpu=32),
-    test_dataloader=dict(samples_per_gpu=32),
+    samples_per_gpu=128,
+    workers_per_gpu=8,
+    val_dataloader=dict(samples_per_gpu=128),
+    test_dataloader=dict(samples_per_gpu=128),
     train=dict(
         type='HandCocoWholeBodyDataset',
         ann_file=f'{data_root}/annotations/coco_wholebody_train_v1.0.json',
@@ -165,3 +169,6 @@ data = dict(
         pipeline=test_pipeline,
         dataset_info={{_base_.dataset_info}}),
 )
+
+fp16 = dict(loss_scale='dynamic')
+load_from = "work_dirs/hrnetv2_w18_coco_wholebody_hand_256x256_dark/best_AUC_epoch_200.pth"

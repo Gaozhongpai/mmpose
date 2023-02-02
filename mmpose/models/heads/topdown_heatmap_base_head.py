@@ -60,11 +60,13 @@ class TopdownHeatmapBaseHead(nn.Module):
 
         c = np.zeros((batch_size, 2), dtype=np.float32)
         s = np.zeros((batch_size, 2), dtype=np.float32)
+        r = np.zeros((batch_size, 1), dtype=np.float32)
         image_paths = []
         score = np.ones(batch_size)
         for i in range(batch_size):
             c[i, :] = img_metas[i]['center']
             s[i, :] = img_metas[i]['scale']
+            r[i, :] = img_metas[i]['rotation']
             image_paths.append(img_metas[i]['image_file'])
 
             if 'bbox_score' in img_metas[i]:
@@ -76,6 +78,7 @@ class TopdownHeatmapBaseHead(nn.Module):
             output,
             c,
             s,
+            r,
             unbiased=self.test_cfg.get('unbiased_decoding', False),
             post_process=self.test_cfg.get('post_process', 'default'),
             kernel=self.test_cfg.get('modulate_kernel', 11),

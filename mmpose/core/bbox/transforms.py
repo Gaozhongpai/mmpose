@@ -1,6 +1,30 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import numpy as np
+import math 
 
+kWristJoint = 0
+kMiddleFingerPIPJoint = 10
+kIndexFingerPIPJoint = 6
+kRingFingerPIPJoint = 14
+kTargetAngle = math.pi * 0.5
+
+def NormalizeRadians(angle):
+    return angle - 2 * math.pi * math.floor((angle - (-math.pi)) / (2 * math.pi))
+
+def ComputeRotation(landmarks):
+    x0 = landmarks[kWristJoint][0]
+    y0 = landmarks[kWristJoint][1]
+
+    x1 = (landmarks[kIndexFingerPIPJoint][0] +
+          landmarks[kRingFingerPIPJoint][0]) / 2.0
+    y1 = (landmarks[kIndexFingerPIPJoint][1] +
+          landmarks[kRingFingerPIPJoint][1]) / 2.0
+    x1 = (x1 + landmarks[kMiddleFingerPIPJoint][0]) / 2.0
+    y1 = (y1 + landmarks[kMiddleFingerPIPJoint][1]) / 2.0
+
+    rotation = NormalizeRadians(kTargetAngle - math.atan2(-(y1 - y0), x1 - x0))
+    rotation = math.degrees(rotation)
+    return rotation
 
 def bbox_xyxy2xywh(bbox_xyxy):
     """Transform the bbox format from x1y1x2y2 to xywh.

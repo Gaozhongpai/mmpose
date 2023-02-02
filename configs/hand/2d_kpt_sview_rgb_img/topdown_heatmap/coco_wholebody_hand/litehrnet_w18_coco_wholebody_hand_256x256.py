@@ -90,7 +90,7 @@ train_pipeline = [
     dict(type='TopDownRandomShiftBboxCenter', shift_factor=0.16, prob=0.3),
     dict(type='TopDownRandomFlip', flip_prob=0.5),
     dict(
-        type='TopDownGetRandomScaleRotation', rot_factor=90, scale_factor=0.3),
+        type='TopDownGetRandomScaleRotation', rot_factor=5, scale_factor=0.3),
     dict(type='TopDownAffine'),
     dict(type='ToTensor'),
     dict(
@@ -126,10 +126,10 @@ test_pipeline = val_pipeline
 
 data_root = 'data/coco'
 data = dict(
-    samples_per_gpu=32,
-    workers_per_gpu=2,
-    val_dataloader=dict(samples_per_gpu=32),
-    test_dataloader=dict(samples_per_gpu=32),
+    samples_per_gpu=96,
+    workers_per_gpu=6,
+    val_dataloader=dict(samples_per_gpu=96),
+    test_dataloader=dict(samples_per_gpu=96),
     train=dict(
         type='HandCocoWholeBodyDataset',
         ann_file=f'{data_root}/annotations/coco_wholebody_train_v1.0.json',

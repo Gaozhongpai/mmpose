@@ -3,13 +3,13 @@ import warnings
 
 import cv2
 import numpy as np
-
-from mmpose.core.bbox import bbox_xywh2cs
+from random import randrange
+from mmpose.core.bbox import bbox_xywh2cs, ComputeRotation
 from mmpose.core.post_processing import (affine_transform, fliplr_joints,
                                          get_affine_transform, get_warp_matrix,
                                          warp_affine_joints)
 from mmpose.datasets.builder import PIPELINES
-
+from kornia.augmentation import RandomBrightness
 
 @PIPELINES.register_module()
 class TopDownGetBboxCenterScale:
@@ -53,6 +53,7 @@ class TopDownGetBboxCenterScale:
 
             results['center'] = center
             results['scale'] = scale
+            results['rotation'] = ComputeRotation(results['joints_3d'])
         return results
 
 
@@ -113,6 +114,7 @@ class TopDownRandomFlip:
         joints_3d = results['joints_3d']
         joints_3d_visible = results['joints_3d_visible']
         center = results['center']
+        rotation = results['rotation']
 
         # A flag indicating whether the image is flipped,
         # which can be used by child class.
@@ -133,13 +135,74 @@ class TopDownRandomFlip:
                     joints_3d, joints_3d_visible, img[0].shape[1],
                     results['ann_info']['flip_pairs'])
                 center[0] = img[0].shape[1] - center[0] - 1
+        rotation = - rotation
 
         results['img'] = img
         results['joints_3d'] = joints_3d
         results['joints_3d_visible'] = joints_3d_visible
         results['center'] = center
+        results['rotation'] = rotation
         results['flipped'] = flipped
 
+        return results
+
+@PIPELINES.register_module()
+class TopDownRandomLowRes:
+    """Data augmentation with random image flip.
+
+    Required key: 'img', 'joints_3d', 'joints_3d_visible', 'center' and
+    'ann_info'.
+
+    Modifies key: 'img', 'joints_3d', 'joints_3d_visible', 'center' and
+    'flipped'.
+
+    Args:
+        flip (bool): Option to perform random flip.
+        flip_prob (float): Probability of flip.
+    """
+
+    def __init__(self, low_res_prob=0.5):
+        self.low_res_prob = low_res_prob
+
+    def __call__(self, results):
+        """Perform data augmentation with random image flip."""
+        img = results['img']
+        if np.random.rand() <= self.low_res_prob:
+            down_scale = 2**(randrange(3) + 1)
+            img = cv2.resize(img, [256//down_scale, 256//down_scale])
+            img = img + (np.random.random([256//down_scale, 256//down_scale, 3]) - 0.5) * 16
+            img = np.clip(img, 0, 255)
+            img = cv2.resize(img, [256, 256])
+        results['img'] = img
+        return results
+
+
+@PIPELINES.register_module()
+class TopDownRandomLowLight:
+    """Data augmentation with random image flip.
+
+    Required key: 'img', 'joints_3d', 'joints_3d_visible', 'center' and
+    'ann_info'.
+
+    Modifies key: 'img', 'joints_3d', 'joints_3d_visible', 'center' and
+    'flipped'.
+
+    Args:
+        flip (bool): Option to perform random flip.
+        flip_prob (float): Probability of flip.
+    """
+
+    def __init__(self, low_light_prob=0.5):
+        self.low_light_prob = low_light_prob
+        self.aug = RandomBrightness(brightness=(0.75, 1.25), p=low_light_prob, keepdim=True)
+
+    def __call__(self, results):
+        """Perform data augmentation with random image flip."""
+        img = results['img']
+        # if np.random.rand() <= self.low_light_prob:
+        #     img = img * (np.random.rand() * 0.2 + 0.75)
+        img = self.aug(img)
+        results['img'] = img
         return results
 
 
@@ -238,7 +301,7 @@ class TopDownGetRandomScaleRotation:
         rot_prob (float): Probability of random rotation.
     """
 
-    def __init__(self, rot_factor=40, scale_factor=0.5, rot_prob=0.6):
+    def __init__(self, rot_factor=5, scale_factor=0.5, rot_prob=0.6):
         self.rot_factor = rot_factor
         self.scale_factor = scale_factor
         self.rot_prob = rot_prob
@@ -257,7 +320,7 @@ class TopDownGetRandomScaleRotation:
         r = r_factor if np.random.rand() <= self.rot_prob else 0
 
         results['scale'] = s
-        results['rotation'] = r
+        results['rotation'] += r
 
         return results
 

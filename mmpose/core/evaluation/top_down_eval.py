@@ -4,7 +4,7 @@ import warnings
 import cv2
 import numpy as np
 
-from mmpose.core.post_processing import transform_preds
+from mmpose.core.post_processing import transform_preds, get_affine_transform, affine_transform_batch
 
 
 def _calc_distances(preds, targets, mask, normalize):
@@ -474,6 +474,7 @@ def keypoints_from_regression(regression_preds, center, scale, img_size):
 def keypoints_from_heatmaps(heatmaps,
                             center,
                             scale,
+                            rotation,
                             unbiased=False,
                             post_process='default',
                             kernel=11,
@@ -613,8 +614,11 @@ def keypoints_from_heatmaps(heatmaps,
 
     # Transform back to the image
     for i in range(N):
-        preds[i] = transform_preds(
-            preds[i], center[i], scale[i], [W, H], use_udp=use_udp)
+        trans_inv = get_affine_transform(center[i], scale[i], rotation[i].item(), [W*4, H*4], inv=True)
+        preds[i] = affine_transform_batch(preds[i]*4, trans_inv)
+        
+        # preds[i] = transform_preds(
+        #    preds[i], center[i], scale[i], [W, H], use_udp=use_udp)
 
     if post_process == 'megvii':
         maxvals = maxvals / 255.0 + 0.5

@@ -267,6 +267,21 @@ def affine_transform(pt, trans_mat):
 
     return new_pt
 
+def affine_transform_batch(pt, trans_mat):
+    """Apply an affine transformation to the points.
+
+    Args:
+        pt (np.ndarray): a 2 dimensional point to be transformed
+        trans_mat (np.ndarray): 2x3 matrix of an affine transform
+
+    Returns:
+        np.ndarray: Transformed points.
+    """
+    assert pt.shape[1] == 2
+    pt = np.concatenate([np.transpose(pt, [1, 0]), np.ones((1, 21))])
+    new_pt = np.array(trans_mat) @ pt
+    new_pt = np.transpose(new_pt, [1, 0])
+    return new_pt
 
 def _get_3rd_point(a, b):
     """To calculate the affine matrix, three pairs of points are required. This
