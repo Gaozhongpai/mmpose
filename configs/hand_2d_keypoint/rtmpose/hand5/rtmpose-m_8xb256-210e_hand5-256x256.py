@@ -5,10 +5,13 @@ _base_ = ['../../../_base_/default_runtime.py']
 # runtime
 max_epochs = 210
 stage2_num_epochs = 10
-base_lr = 4e-3
+base_lr = 4e-4
 
 train_cfg = dict(max_epochs=max_epochs, val_interval=10)
 randomness = dict(seed=21)
+
+custom_imports = dict(imports=['mmpose.datasets.transforms'], 
+                      allow_failed_imports=False)
 
 # optimizer
 optim_wrapper = dict(
@@ -36,7 +39,7 @@ param_scheduler = [
 ]
 
 # automatically scaling LR based on the actual training batch size
-auto_scale_lr = dict(base_batch_size=256)
+auto_scale_lr = dict(base_batch_size=160)
 
 # codec settings
 codec = dict(
@@ -100,7 +103,7 @@ model = dict(
 # base dataset settings
 dataset_type = 'CocoWholeBodyHandDataset'
 data_mode = 'topdown'
-data_root = 'data/'
+data_root = '/code/'
 
 backend_args = dict(backend='local')
 
@@ -114,6 +117,8 @@ train_pipeline = [
         rotate_factor=180),
     dict(type='RandomFlip', direction='horizontal'),
     dict(type='TopdownAffine', input_size=codec['input_size']),
+    dict(type='TopDownRandomLowRes', low_res_prob=0.5),
+    dict(type='NightAugNumpy'),
     dict(type='mmdet.YOLOXHSVRandomAug'),
     dict(
         type='Albumentation',
@@ -151,6 +156,8 @@ train_pipeline_stage2 = [
         rotate_factor=180),
     dict(type='RandomFlip', direction='horizontal'),
     dict(type='TopdownAffine', input_size=codec['input_size']),
+    dict(type='TopDownRandomLowRes', low_res_prob=0.5),
+    dict(type='NightAugNumpy'),
     dict(type='mmdet.YOLOXHSVRandomAug'),
     dict(
         type='Albumentation',
@@ -176,8 +183,8 @@ dataset_coco = dict(
     type=dataset_type,
     data_root=data_root,
     data_mode=data_mode,
-    ann_file='coco/annotations/coco_wholebody_train_v1.0.json',
-    data_prefix=dict(img='detection/coco/train2017/'),
+    ann_file='dataset/coco/annotations/coco_wholebody_train_v1.0.json',
+    data_prefix=dict(img='dataset/coco/train2017/'),
     pipeline=[],
 )
 
@@ -246,7 +253,7 @@ dataset_halpehand = dict(
 
 # data loaders
 train_dataloader = dict(
-    batch_size=256,
+    batch_size=160,
     num_workers=10,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
@@ -255,8 +262,7 @@ train_dataloader = dict(
         metainfo=dict(
             from_file='configs/_base_/datasets/coco_wholebody_hand.py'),
         datasets=[
-            dataset_coco, dataset_onehand10k, dataset_freihand, dataset_rhd,
-            dataset_halpehand
+            dataset_coco, # dataset_onehand10k, dataset_freihand, dataset_rhd, dataset_halpehand
         ],
         pipeline=train_pipeline,
         test_mode=False,
@@ -267,8 +273,8 @@ val_coco = dict(
     type=dataset_type,
     data_root=data_root,
     data_mode=data_mode,
-    ann_file='coco/annotations/coco_wholebody_val_v1.0.json',
-    data_prefix=dict(img='detection/coco/val2017/'),
+    ann_file='dataset/coco/annotations/coco_wholebody_val_v1.0.json',
+    data_prefix=dict(img='dataset/coco/val2017/'),
     pipeline=[],
 )
 
@@ -346,7 +352,7 @@ test_dataloader = dict(
         metainfo=dict(
             from_file='configs/_base_/datasets/coco_wholebody_hand.py'),
         datasets=[
-            val_coco, val_onehand10k, val_freihand, val_rhd, val_halpehand
+            val_coco, # val_onehand10k, val_freihand, val_rhd, val_halpehand
         ],
         pipeline=val_pipeline,
         test_mode=True,

@@ -6,6 +6,10 @@ __pycache__/
 
 # C extensions
 *.so
+dataset
+predictions
+demo/data
+vis_results
 
 # Distribution / packaging
 .Python

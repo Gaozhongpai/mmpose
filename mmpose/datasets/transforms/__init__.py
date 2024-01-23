@@ -12,11 +12,11 @@ from .hand_transforms import HandRandomFlip
 from .loading import LoadImage
 from .mix_img_transforms import Mosaic, YOLOXMixUp
 from .pose3d_transforms import RandomFlipAroundRoot
-from .topdown_transforms import TopdownAffine
+from .topdown_transforms import TopdownAffine, TopDownRandomLowRes, NightAugNumpy
 
 __all__ = [
     'GetBBoxCenterScale', 'RandomBBoxTransform', 'RandomFlip',
-    'RandomHalfBody', 'TopdownAffine', 'Albumentation',
+    'RandomHalfBody', 'TopdownAffine', 'TopDownRandomLowRes', 'NightAugNumpy', 'Albumentation',
     'PhotometricDistortion', 'PackPoseInputs', 'LoadImage',
     'BottomupGetHeatmapMask', 'BottomupRandomAffine', 'BottomupResize',
     'GenerateTarget', 'KeypointConverter', 'RandomFlipAroundRoot',
