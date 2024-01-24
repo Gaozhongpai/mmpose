@@ -5,7 +5,7 @@ _base_ = ['../../../_base_/default_runtime.py']
 # runtime
 max_epochs = 210
 stage2_num_epochs = 10
-base_lr = 4e-4
+base_lr = 8e-4
 
 train_cfg = dict(max_epochs=max_epochs, val_interval=10)
 randomness = dict(seed=21)
@@ -100,6 +100,8 @@ model = dict(
         decoder=codec),
     test_cfg=dict(flip_test=True, ))
 
+load_from = 'https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/rtmpose-m_simcc-hand5_pt-aic-coco_210e-256x256-74fb594_20230320.pth'  # noqa: E501
+
 # base dataset settings
 dataset_type = 'CocoWholeBodyHandDataset'
 data_mode = 'topdown'
@@ -118,7 +120,7 @@ train_pipeline = [
     dict(type='RandomFlip', direction='horizontal'),
     dict(type='TopdownAffine', input_size=codec['input_size']),
     dict(type='TopDownRandomLowRes', low_res_prob=0.5),
-    dict(type='NightAugNumpy'),
+    dict(type='NightAugNumpy', low_light_prob=0.35),
     dict(type='mmdet.YOLOXHSVRandomAug'),
     dict(
         type='Albumentation',
@@ -157,7 +159,7 @@ train_pipeline_stage2 = [
     dict(type='RandomFlip', direction='horizontal'),
     dict(type='TopdownAffine', input_size=codec['input_size']),
     dict(type='TopDownRandomLowRes', low_res_prob=0.5),
-    dict(type='NightAugNumpy'),
+    dict(type='NightAugNumpy', low_light_prob=0.35),
     dict(type='mmdet.YOLOXHSVRandomAug'),
     dict(
         type='Albumentation',

@@ -5,7 +5,8 @@ import numpy as np
 from mmcv.transforms import LoadImageFromFile
 
 from mmpose.registry import TRANSFORMS
-
+import numpy as np
+import cv2, os
 
 @TRANSFORMS.register_module()
 class LoadImage(LoadImageFromFile):
@@ -67,5 +68,6 @@ class LoadImage(LoadImageFromFile):
                 f'`{str(e)}` occurs when loading `{results["img_path"]}`.'
                 'Please check whether the file exists.')
             raise e
-
+        if np.random.rand() < 0.2 and os.path.exists(results['img_path'].replace("2017", "2017_colorhand")):
+            results['img'] = cv2.imread(results['img_path'].replace("2017", "2017_colorhand"))
         return results

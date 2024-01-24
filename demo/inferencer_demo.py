@@ -186,7 +186,7 @@ def parse_args():
     init_kws = [
         'pose2d', 'pose2d_weights', 'scope', 'device', 'det_model',
         'det_weights', 'det_cat_ids', 'pose3d', 'pose3d_weights',
-        'show_progress'
+        # 'show_progress'
     ]
     init_args = {}
     for init_kw in init_kws:

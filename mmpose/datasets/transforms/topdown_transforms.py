@@ -180,7 +180,9 @@ class TopDownRandomLowRes(BaseTransform):
 
 @TRANSFORMS.register_module()
 class NightAugNumpy(BaseTransform):
-    def __init__(self):
+    def __init__(self, low_light_prob=0.5):
+        super().__init__()
+        self.low_light_prob=low_light_prob
         self.kernel_size = 11
         self.sigma_min, self.sigma_max = 0.1, 2.0
 
@@ -211,44 +213,45 @@ class NightAugNumpy(BaseTransform):
 
         img = results['img']
         # Gaussian Blur
-        if np.random.random() > 0.5:
-            img = cv2.GaussianBlur(img, (self.kernel_size, self.kernel_size), np.random.uniform(self.sigma_min, self.sigma_max))
+        if np.random.random() > self.low_light_prob:
+            if np.random.random() > 0.5:
+                img = cv2.GaussianBlur(img, (self.kernel_size, self.kernel_size), np.random.uniform(self.sigma_min, self.sigma_max))
 
-        cln_img_zero = img.copy()
+            cln_img_zero = img.copy()
 
-        # Gamma
-        if np.random.random() > 0.5:
-            cln_img = img.copy()
-            val = 1 / (np.random.random() * 0.6 + 0.4)
-            img = np.clip(((img / 255) ** val) * 255, 0, 255).astype(np.uint8)
-            img = self.mask_img(img, cln_img)
-            g_b_flag = False
+            # Gamma
+            if np.random.random() > 0.5:
+                cln_img = img.copy()
+                val = 1 / (np.random.random() * 0.6 + 0.4)
+                img = np.clip(((img / 255) ** val) * 255, 0, 255).astype(np.uint8)
+                img = self.mask_img(img, cln_img)
+                g_b_flag = False
 
-        # Brightness
-        if np.random.random() > 0.5 or g_b_flag:
-            cln_img = img.copy()
-            val = np.random.random() * 0.6 + 0.4
-            img = np.clip(img * val, 0, 255).astype(np.uint8)
-            img = self.mask_img(img, cln_img)
+            # Brightness
+            if np.random.random() > 0.5 or g_b_flag:
+                cln_img = img.copy()
+                val = np.random.random() * 0.6 + 0.4
+                img = np.clip(img * val, 0, 255).astype(np.uint8)
+                img = self.mask_img(img, cln_img)
 
-        # Contrast
-        if np.random.random() > 0.5:
-            cln_img = img.copy()
-            val = np.random.random() * 0.6 + 0.4
-            img = np.clip(127.5 + val * (img - 127.5), 0, 255).astype(np.uint8)
-            img = self.mask_img(img, cln_img)
-        img = self.mask_img(img, cln_img_zero)
+            # Contrast
+            if np.random.random() > 0.5:
+                cln_img = img.copy()
+                val = np.random.random() * 0.6 + 0.4
+                img = np.clip(127.5 + val * (img - 127.5), 0, 255).astype(np.uint8)
+                img = self.mask_img(img, cln_img)
+            img = self.mask_img(img, cln_img_zero)
 
-        prob = 0.5
-        while np.random.random() > prob:
-            img = self.gaussian_heatmap(img)
-            prob += 0.1
+            prob = 0.5
+            while np.random.random() > prob:
+                img = self.gaussian_heatmap(img)
+                prob += 0.1
 
-        # Noise
-        if np.random.random() > 0.5:
-            n = np.clip(np.random.normal(0, np.random.randint(20), img.shape), 0, 255)
-            img = np.clip(n + img, 0, 255).astype(np.uint8)
-        
+            # Noise
+            if np.random.random() > 0.5:
+                n = np.clip(np.random.normal(0, np.random.randint(20), img.shape), 0, 255)
+                img = np.clip(n + img, 0, 255).astype(np.uint8)
+            
         results['img'] = img
         return results
 
