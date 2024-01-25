@@ -141,7 +141,7 @@ val_pipeline = [
 
 test_pipeline = val_pipeline
 
-data_root = 'data/coco'
+data_root = 'dataset/coco'
 data = dict(
     samples_per_gpu=128,
     workers_per_gpu=8,
@@ -171,4 +171,4 @@ data = dict(
 )
 
 fp16 = dict(loss_scale='dynamic')
-load_from = "work_dirs/hrnetv2_w18_coco_wholebody_hand_256x256_dark/best_AUC_epoch_200.pth"
+load_from = "work_dirs/hrnetv2_w18_coco_wholebody_hand_256x256/best_AUC_epoch_60.pth"

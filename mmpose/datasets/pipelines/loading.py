@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import mmcv
 import numpy as np
-
+import os 
 from ..builder import PIPELINES
 
 
@@ -68,6 +68,8 @@ class LoadImageFromFile:
             results['img'] = [self._read_image(path) for path in image_file]
         elif image_file is not None:
             # Load single image from path
+            if np.random.rand() < 0.25 and image_file.replace("2017", "2017_colorhand"):
+                image_file = image_file.replace("2017", "2017_colorhand")
             results['img'] = self._read_image(image_file)
         else:
             if 'img' not in results:
